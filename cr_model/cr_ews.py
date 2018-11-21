@@ -140,7 +140,7 @@ for j in range(numSims):
 #---------------------
 
 # Sample from time-series at uniform intervals of width dt2
-dt2 = 1
+dt2 = 0.5
 df_sims_filt = df_sims_x[np.remainder(df_sims_x.index,dt2) == 0]
 
 # set up a list to store output dataframes from ews_compute- we will concatenate them at the end
@@ -193,7 +193,7 @@ plot_num = 2
 fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
 df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],title='Early warning signals for the Consumer Resource Model')
 df_ews.loc[plot_num]['Variance'].plot(ax=axes[1],legend=True)
-df_ews.loc[plot_num]['Lag-1 AC'].plot(ax=axes[1], secondary_y=True,legend=True)
+df_ews.loc[plot_num][['Lag-1 AC','Lag-2 AC']].plot(ax=axes[1], secondary_y=True,legend=True)
 df_ews.loc[plot_num]['Smax'].dropna().plot(ax=axes[2],legend=True)
 df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3],legend=True)
 
@@ -205,10 +205,11 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 # Display power spectrum and fits at a given instant in time
 #------------------------------------
 
-t_pspec = 100
+t_pspec = 150
+plot_num = 1
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
-pspec=pspec_welch(df_ews.loc[t_pspec-rw*len(t):t_pspec,'Residuals'], dt, ham_length=ham_len, w_cutoff=1)
+pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*len(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
 
 # Execute the function pspec_metrics to compute the AIC weights and fitting parameters
 spec_ews = pspec_metrics(pspec, ews=['smax', 'cf', 'aic', 'aic_params'])
