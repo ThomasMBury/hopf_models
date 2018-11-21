@@ -18,12 +18,12 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('../../early_warnings')
 from ews_compute import ews_compute
+from ews_spec import pspec_welch, pspec_metrics
 
 
-
-#----------------------------------
-# Simulate many (transient) realisations
-#----------------------------------
+#--------------------------------
+# Adjustable parameters
+#–-----------------------------
 
 
 # Simulation parameters
@@ -31,8 +31,22 @@ dt = 0.1
 t0 = 0
 tmax = 200
 tburn = 100 # burn-in period
-numSims = 5
+numSims = 3
 seed = 0 # random number generation seed
+
+# EWS parameters
+rw = 0.5 # rolling window
+bw = 0.1 # bandwidth
+lags = [1,2] # autocorrelation lag times
+ews = ['var','ac','sd','cv','skew','kurt','smax','aic'] # EWS to compute
+ham_length = 40 # number of data points in Hamming window
+ham_offset = 0.5 # proportion of Hamming window to offset by upon each iteration
+pspec_roll_offset = 2 # offset for rolling window when doing spectrum metrics
+
+
+#----------------------------------
+# Simulate many (transient) realisations
+#----------------------------------
 
 # Model
 
@@ -135,13 +149,13 @@ appended_ews = []
 # loop through each trajectory as an input to ews_compute
 for i in range(numSims):
     df_temp = ews_compute(df_sims_filt['Sim '+str(i+1)], 
-                      roll_window=0.5, 
-                      band_width=0.1,
-                      lag_times=[1], 
-                      ews=['var','ac','sd','cv','skew','kurt','smax','aic'],
-                      ham_length=40,
-                      ham_offset=0.5,
-                      pspec_roll_offset = 2, 
+                      roll_window = rw, 
+                      band_width = bw,
+                      lag_times = lags, 
+                      ews = ews,
+                      ham_length = ham_length,
+                      ham_offset = ham_offset,
+                      pspec_roll_offset = pspec_roll_offset,
                       upto=tbif)
     # include a column in the dataframe for realisation number
     df_temp['Realisation number'] = pd.Series((i+1)*np.ones([len(t)],dtype=int),index=t)
@@ -177,7 +191,7 @@ df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reo
 # Make plot of EWS
 plot_num = 2
 fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
-df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],title='Early warning signals')
+df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],title='Early warning signals for the Consumer Resource Model')
 df_ews.loc[plot_num]['Variance'].plot(ax=axes[1],legend=True)
 df_ews.loc[plot_num]['Lag-1 AC'].plot(ax=axes[1], secondary_y=True,legend=True)
 df_ews.loc[plot_num]['Smax'].dropna().plot(ax=axes[2],legend=True)
@@ -185,7 +199,42 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 
 
 
-# Check out power spectrum
+
+
+#-------------------------------------
+# Display power spectrum and fits at a given instant in time
+#------------------------------------
+
+t_pspec = 100
+
+# Use function pspec_welch to compute the power spectrum of the residuals at a particular time
+pspec=pspec_welch(df_ews.loc[t_pspec-rw*len(t):t_pspec,'Residuals'], dt, ham_length=ham_len, w_cutoff=1)
+
+# Execute the function pspec_metrics to compute the AIC weights and fitting parameters
+spec_ews = pspec_metrics(pspec, ews=['smax', 'cf', 'aic', 'aic_params'])
+# Define the power spectrum models
+def fit_fold(w,sigma,lam):
+    return (sigma**2 / (2*np.pi))*(1/(w**2+lam**2))
+        
+def fit_hopf(w,sigma,mu,w0):
+    return (sigma**2/(4*np.pi))*(1/((w+w0)**2+mu**2)+1/((w-w0)**2 +mu**2))
+        
+def fit_null(w,sigma):
+    return sigma**2/(2*np.pi)* w**0
+
+
+# Make plot
+w_vals = np.linspace(-max(pspec.index),max(pspec.index),100)
+
+fig2=plt.figure(2)
+pspec.plot(label='Measured')
+plt.plot(w_vals, fit_fold(w_vals, spec_ews['Params fold']['sigma'], spec_ews['Params fold']['lam']),label='Fold fit')
+plt.plot(w_vals, fit_hopf(w_vals, spec_ews['Params hopf']['sigma'], spec_ews['Params hopf']['mu'], spec_ews['Params hopf']['w0']),label='Hopf fit')
+plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null fit')
+plt.ylabel('Power')
+plt.legend()
+plt.title('Power spectrum and fits at time t='+str(t_pspec))
+
 
 
 
