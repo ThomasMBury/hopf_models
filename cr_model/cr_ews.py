@@ -35,11 +35,11 @@ numSims = 1
 seed = 0 # random number generation seed
 
 # EWS parameters
-rw = 0.25 # rolling window
+rw = 0.5 # rolling window
 bw = 0.1 # bandwidth
 lags = [1,2,4] # autocorrelation lag times
 ews = ['var','ac','sd','cv','skew','kurt','smax','aic'] # EWS to compute
-ham_length = 80 # number of data points in Hamming window
+ham_length = 20 # number of data points in Hamming window
 ham_offset = 0.5 # proportion of Hamming window to offset by upon each iteration
 pspec_roll_offset = 2 # offset for rolling window when doing spectrum metrics
 
@@ -205,7 +205,7 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 # Display power spectrum and fits at a given instant in time
 #------------------------------------
 
-t_pspec = 152
+t_pspec = 100
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
 pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
