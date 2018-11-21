@@ -31,7 +31,7 @@ dt = 0.1
 t0 = 0
 tmax = 200
 tburn = 100 # burn-in period
-numSims = 3
+numSims = 1
 seed = 0 # random number generation seed
 
 # EWS parameters
@@ -189,7 +189,7 @@ df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reo
 
 
 # Make plot of EWS
-plot_num = 2
+plot_num = 1
 fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
 df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],title='Early warning signals for the Consumer Resource Model')
 df_ews.loc[plot_num]['Variance'].plot(ax=axes[1],legend=True)
@@ -205,8 +205,7 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 # Display power spectrum and fits at a given instant in time
 #------------------------------------
 
-t_pspec = 150
-plot_num = 1
+t_pspec = 175
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
 pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*len(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
@@ -229,9 +228,9 @@ w_vals = np.linspace(-max(pspec.index),max(pspec.index),100)
 
 fig2=plt.figure(2)
 pspec.plot(label='Measured')
-plt.plot(w_vals, fit_fold(w_vals, spec_ews['Params fold']['sigma'], spec_ews['Params fold']['lam']),label='Fold fit')
-plt.plot(w_vals, fit_hopf(w_vals, spec_ews['Params hopf']['sigma'], spec_ews['Params hopf']['mu'], spec_ews['Params hopf']['w0']),label='Hopf fit')
-plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null fit')
+plt.plot(w_vals, fit_fold(w_vals, spec_ews['Params fold']['sigma'], spec_ews['Params fold']['lam']),label='Fold (AIC='+str(round(spec_ews['AIC fold'],2))+')')
+plt.plot(w_vals, fit_hopf(w_vals, spec_ews['Params hopf']['sigma'], spec_ews['Params hopf']['mu'], spec_ews['Params hopf']['w0']),label='Hopf (AIC='+str(round(spec_ews['AIC hopf'],2))+')')
+plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null (AIC='+str(round(spec_ews['AIC null'],2))+')')
 plt.ylabel('Power')
 plt.legend()
 plt.title('Power spectrum and fits at time t='+str(t_pspec))
