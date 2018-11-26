@@ -173,20 +173,13 @@ for i in range(numSims):
 df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reorder_levels([1,0])
 
 
-#
-##------------------------
-## Plots of EWS
-##-----------------------
-#
-## plot of all variance trajectories
-#df_ews.loc[:,'Variance'].unstack(level=0).plot(legend=False, title='Variance') # unstack puts index back as a column
-#
-## plot of all autocorrelation trajectories
-#df_ews.loc[:,'Lag-1 AC'].unstack(level=0).plot(legend=False, title='Lag-1 AC') 
-#
-## plot of all smax trajectories
-#df_ews.loc[:,'Smax'].unstack(level=0).dropna().plot(legend=False, title='Smax') # drop Nan values
-#
+# Compute summary statistics of EWS (mean, pm1 s.d.)
+
+
+
+#--------------------
+# For a single realisation, display some plots
+#-------------------------
 
 
 # Make plot of EWS
@@ -199,11 +192,7 @@ df_ews.loc[plot_num]['Smax'].dropna().plot(ax=axes[2],legend=True)
 df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3],legend=True)
 
 
-
-#-------------------------------------
-# Display power spectrum and fits at a given instant in time
-#------------------------------------
-
+# Display power spectrum and fits at a particular time
 t_pspec = 140
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
