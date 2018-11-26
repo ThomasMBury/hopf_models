@@ -33,7 +33,7 @@ t0 = 0
 tmax = 200
 tburn = 100 # burn-in period
 numSims = 1
-seed = 0 # random number generation seed
+seed = 21 # random number generation seed
 
 # EWS parameters
 rw = 0.5 # rolling window
@@ -206,7 +206,7 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 # Display power spectrum and fits at a given instant in time
 #------------------------------------
 
-t_pspec = 175
+t_pspec = 145
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
 pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
@@ -235,5 +235,20 @@ plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null 
 plt.ylabel('Power')
 plt.legend()
 plt.title('Power spectrum and fits at time t='+str(t_pspec))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
