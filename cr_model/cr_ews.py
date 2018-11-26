@@ -42,7 +42,7 @@ lags = [1,2,4] # autocorrelation lag times
 ews = ['var','ac','sd','cv','skew','kurt','smax','aic'] # EWS to compute
 ham_length = 40 # number of data points in Hamming window
 ham_offset = 0.5 # proportion of Hamming window to offset by upon each iteration
-pspec_roll_offset = 2 # offset for rolling window when doing spectrum metrics
+pspec_roll_offset = 5 # offset for rolling window when doing spectrum metrics
 
 
 #----------------------------------
@@ -206,7 +206,7 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 # Display power spectrum and fits at a given instant in time
 #------------------------------------
 
-t_pspec = 150
+t_pspec = 175
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
 pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
@@ -235,8 +235,5 @@ plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null 
 plt.ylabel('Power')
 plt.legend()
 plt.title('Power spectrum and fits at time t='+str(t_pspec))
-
-
-
 
 
