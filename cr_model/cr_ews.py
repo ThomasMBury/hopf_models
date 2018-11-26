@@ -30,9 +30,9 @@ from ews_spec import pspec_welch, pspec_metrics
 # Simulation parameters
 dt = 0.1
 t0 = 0
-tmax = 200
+tmax = 150
 tburn = 100 # burn-in period
-numSims = 1
+numSims = 10
 seed = 21 # random number generation seed
 
 # EWS parameters
@@ -58,8 +58,8 @@ def de_fun_y(x,y,e,a,h,m):
     return e*a*x*y/(1+a*h*x) - m*y
     
 # Model parameters
-sigma_x = 0.01 # noise intensity
-sigma_y = 0.01
+sigma_x = 0.02 # noise intensity
+sigma_y = 0.02
 r = 10
 k = 1.7
 h = 0.06
@@ -200,13 +200,11 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 
 
 
-
-
 #-------------------------------------
 # Display power spectrum and fits at a given instant in time
 #------------------------------------
 
-t_pspec = 145
+t_pspec = 140
 
 # Use function pspec_welch to compute the power spectrum of the residuals at a particular time
 pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
@@ -225,7 +223,7 @@ def fit_null(w,sigma):
 
 
 # Make plot
-w_vals = np.linspace(-max(pspec.index),max(pspec.index),100)
+w_vals = np.linspace(-max(pspec.index), max(pspec.index), 100)
 
 fig2=plt.figure(2)
 pspec.plot(label='Measured')
