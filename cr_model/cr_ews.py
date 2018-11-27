@@ -140,7 +140,7 @@ for j in range(numSims):
 ## Execute ews_compute for each realisation in x
 #---------------------
 
-# Sample from time-series at uniform intervals of width dt2
+# Filter time-series to have time-spacing dt2
 dt2 = 0.5
 df_sims_filt = df_sims_x[np.remainder(df_sims_x.index,dt2) == 0]
 
@@ -172,8 +172,32 @@ for i in range(numSims):
 # concatenate EWS DataFrames - use realisation number and time as indices
 df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reorder_levels([1,0])
 
+# export the first 5 realisations for plotting
+df_ews.loc[1:5].to_csv('data_export/cr_singles1.csv')
+
+
+# compute power spectrum over staggered windows for a single realisation
+# initialise dataframe for power spectra
+df_pspec = pd.DataFrame([])
+# loop over time
+for k in np.arange(rw*tbif, tbif, 10):
+            
+            # select subset of series contained in window
+            window_series = df_ews.loc[1]['Residuals'][k-rw*tbif:k]
+                        
+            # compute power spectrum of window data using function pspec_welch
+            pspec = pspec_welch(window_series, dt2, 
+                                ham_length=ham_length, 
+                                ham_offset=ham_offset)
+            # add series to dataframe
+            df_pspec[str(k)] = pspec
+
+
+
 
 # Compute summary statistics of EWS (mean, pm1 s.d.)
+
+
 
 
 
@@ -222,15 +246,6 @@ plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null 
 plt.ylabel('Power')
 plt.legend()
 plt.title('Power spectrum and fits at time t='+str(t_pspec))
-
-
-
-
-
-
-
-
-
 
 
 
