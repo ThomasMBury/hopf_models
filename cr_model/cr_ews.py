@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+import os
 
 # import EWS function
 import sys
@@ -22,9 +23,21 @@ from ews_compute import ews_compute
 from ews_spec import pspec_welch, pspec_metrics
 
 
+#---------------------
+# Directory for data output
+#–----------------------
+
+# Name of directory within data_export
+dir_name = 'cr_ews_singles_1'
+
+if not os.path.exists('data_export/'+dir_name):
+    os.makedirs('data_export/'+dir_name)
+
+
 #--------------------------------
 # Adjustable parameters
 #–-----------------------------
+
 
 
 # Simulation parameters
@@ -36,7 +49,7 @@ numSims = 10
 seed = 21 # random number generation seed
 
 # EWS parameters
-rw = 0.5 # rolling window
+rw = 0.25 # rolling window
 bw = 0.1 # bandwidth
 lags = [1,2,4] # autocorrelation lag times
 ews = ['var','ac','sd','cv','skew','kurt','smax','aic'] # EWS to compute
@@ -173,10 +186,15 @@ for i in range(numSims):
 df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reorder_levels([1,0])
 
 # export the first 5 realisations for plotting
-df_ews.loc[1:5].to_csv('data_export/cr_singles1.csv')
+df_ews.loc[1:5].to_csv('data_export/'+dir_name+'/ews.csv')
 
 
-# compute power spectrum over staggered windows for a single realisation
+
+#---------------------------------
+# Visualise power spectrum evolution for a single realisation
+#----------------------------------
+
+
 # initialise dataframe for power spectra
 df_pspec = pd.DataFrame([])
 # loop over time
@@ -191,7 +209,12 @@ for k in np.arange(rw*tbif, tbif, 10):
                                 ham_offset=ham_offset)
             # add series to dataframe
             df_pspec[str(k)] = pspec
+            
+# plot evolving power spectrum
+df_pspec.plot()
 
+# export power spectra for plotting
+df_pspec.to_csv('data_export/'+dir_name+'/pspec.csv')
 
 
 
