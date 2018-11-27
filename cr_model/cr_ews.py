@@ -28,7 +28,7 @@ from ews_spec import pspec_welch, pspec_metrics
 #–----------------------
 
 # Name of directory within data_export
-dir_name = 'cr_ews_singles_1'
+dir_name = 'cr_ews_1'
 
 if not os.path.exists('data_export/'+dir_name):
     os.makedirs('data_export/'+dir_name)
@@ -186,13 +186,17 @@ for i in range(numSims):
 df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reorder_levels([1,0])
 
 # export the first 5 realisations for plotting
-df_ews.loc[1:5].to_csv('data_export/'+dir_name+'/ews.csv')
+df_ews.loc[1:5].to_csv('data_export/'+dir_name+'/ews_singles.csv')
 
 
-# Compute summary statistics of EWS (mean, pm1 s.d.)
-
-
-
+# Compute summary statistics of EWS over all realisations (mean, pm1 s.d.)
+df_ews_means = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC', 
+                      'AIC fold', 'AIC hopf']].mean(level='Time')
+df_ews_deviations = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC', 
+                      'AIC fold', 'AIC hopf']].std(level='Time')
+# Export summary statistics for plotting in MMA
+df_ews_means.to_csv('data_export/'+dir_name+'ews_mean.csv')
+df_ews_deviations.to_csv('data_export/'+dir_name+'ews_std.csv')
 
 
 #--------------------
@@ -264,6 +268,14 @@ df_pspec.plot()
 
 # export power spectra data for plotting in MMA
 df_pspec.to_csv('data_export/'+dir_name+'/pspec.csv')
+
+
+
+
+
+
+
+
 
 
 
