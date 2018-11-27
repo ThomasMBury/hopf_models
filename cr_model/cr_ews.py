@@ -189,11 +189,59 @@ df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reo
 df_ews.loc[1:5].to_csv('data_export/'+dir_name+'/ews.csv')
 
 
+# Compute summary statistics of EWS (mean, pm1 s.d.)
 
-#---------------------------------
-# Visualise power spectrum evolution for a single realisation
-#----------------------------------
 
+
+
+
+#--------------------
+# Plots to visualise EWS
+#-------------------------
+
+## Plot of trajectory, smoothing and EWS
+plot_num = 1
+fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
+df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],title='Early warning signals for the Consumer Resource Model')
+df_ews.loc[plot_num]['Variance'].plot(ax=axes[1],legend=True)
+df_ews.loc[plot_num][['Lag-1 AC','Lag-2 AC','Lag-4 AC']].plot(ax=axes[1], secondary_y=True,legend=True)
+df_ews.loc[plot_num]['Smax'].dropna().plot(ax=axes[2],legend=True)
+df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3],legend=True)
+
+
+## Power spectrum and fitting at t = t_pspec
+
+# Chosen time to visualise power spectrum
+t_pspec = 140
+
+# Use pspec_welch to compute power spectrum
+pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
+
+# Execute the function pspec_metrics to compute the AIC weights and fitting parameters
+spec_ews = pspec_metrics(pspec, ews=['smax', 'cf', 'aic', 'aic_params'])
+# Define the power spectrum models
+def fit_fold(w,sigma,lam):
+    return (sigma**2 / (2*np.pi))*(1/(w**2+lam**2))
+        
+def fit_hopf(w,sigma,mu,w0):
+    return (sigma**2/(4*np.pi))*(1/((w+w0)**2+mu**2)+1/((w-w0)**2 +mu**2))
+        
+def fit_null(w,sigma):
+    return sigma**2/(2*np.pi)* w**0
+
+# Make plot
+w_vals = np.linspace(-max(pspec.index), max(pspec.index), 100)
+fig2 = plt.figure(2)
+pspec.plot(label='Measured')
+plt.plot(w_vals, fit_fold(w_vals, spec_ews['Params fold']['sigma'], spec_ews['Params fold']['lam']),label='Fold (AIC='+str(round(spec_ews['AIC fold'],2))+')')
+plt.plot(w_vals, fit_hopf(w_vals, spec_ews['Params hopf']['sigma'], spec_ews['Params hopf']['mu'], spec_ews['Params hopf']['w0']),label='Hopf (AIC='+str(round(spec_ews['AIC hopf'],2))+')')
+plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null (AIC='+str(round(spec_ews['AIC null'],2))+')')
+plt.ylabel('Power')
+plt.legend()
+plt.title('Power spectrum and fits at time t='+str(t_pspec))
+
+
+## Plot of power spectrum evolution over time
 
 # initialise dataframe for power spectra
 df_pspec = pd.DataFrame([])
@@ -211,68 +259,11 @@ for k in np.arange(rw*tbif, tbif, 10):
             df_pspec[str(k)] = pspec
             
 # plot evolving power spectrum
+fig4 = plt.figure(4)            
 df_pspec.plot()
 
-# export power spectra for plotting
+# export power spectra data for plotting in MMA
 df_pspec.to_csv('data_export/'+dir_name+'/pspec.csv')
-
-
-
-# Compute summary statistics of EWS (mean, pm1 s.d.)
-
-
-
-
-
-#--------------------
-# For a single realisation, display some plots
-#-------------------------
-
-
-# Make plot of EWS
-plot_num = 1
-fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
-df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],title='Early warning signals for the Consumer Resource Model')
-df_ews.loc[plot_num]['Variance'].plot(ax=axes[1],legend=True)
-df_ews.loc[plot_num][['Lag-1 AC','Lag-2 AC','Lag-4 AC']].plot(ax=axes[1], secondary_y=True,legend=True)
-df_ews.loc[plot_num]['Smax'].dropna().plot(ax=axes[2],legend=True)
-df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3],legend=True)
-
-
-# Display power spectrum and fits at a particular time
-t_pspec = 140
-
-# Use function pspec_welch to compute the power spectrum of the residuals at a particular time
-pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
-
-# Execute the function pspec_metrics to compute the AIC weights and fitting parameters
-spec_ews = pspec_metrics(pspec, ews=['smax', 'cf', 'aic', 'aic_params'])
-# Define the power spectrum models
-def fit_fold(w,sigma,lam):
-    return (sigma**2 / (2*np.pi))*(1/(w**2+lam**2))
-        
-def fit_hopf(w,sigma,mu,w0):
-    return (sigma**2/(4*np.pi))*(1/((w+w0)**2+mu**2)+1/((w-w0)**2 +mu**2))
-        
-def fit_null(w,sigma):
-    return sigma**2/(2*np.pi)* w**0
-
-
-# Make plot
-w_vals = np.linspace(-max(pspec.index), max(pspec.index), 100)
-
-fig2=plt.figure(2)
-pspec.plot(label='Measured')
-plt.plot(w_vals, fit_fold(w_vals, spec_ews['Params fold']['sigma'], spec_ews['Params fold']['lam']),label='Fold (AIC='+str(round(spec_ews['AIC fold'],2))+')')
-plt.plot(w_vals, fit_hopf(w_vals, spec_ews['Params hopf']['sigma'], spec_ews['Params hopf']['mu'], spec_ews['Params hopf']['w0']),label='Hopf (AIC='+str(round(spec_ews['AIC hopf'],2))+')')
-plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null (AIC='+str(round(spec_ews['AIC null'],2))+')')
-plt.ylabel('Power')
-plt.legend()
-plt.title('Power spectrum and fits at time t='+str(t_pspec))
-
-
-
-
 
 
 
