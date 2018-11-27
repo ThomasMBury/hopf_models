@@ -45,7 +45,7 @@ dt = 0.1
 t0 = 0
 tmax = 150
 tburn = 100 # burn-in period
-numSims = 10
+numSims = 100
 seed = 21 # random number generation seed
 
 # EWS parameters
@@ -195,8 +195,8 @@ df_ews_means = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC',
 df_ews_deviations = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC', 
                       'AIC fold', 'AIC hopf']].std(level='Time')
 # Export summary statistics for plotting in MMA
-df_ews_means.to_csv('data_export/'+dir_name+'ews_mean.csv')
-df_ews_deviations.to_csv('data_export/'+dir_name+'ews_std.csv')
+df_ews_means.to_csv('data_export/'+dir_name+'/ews_mean.csv')
+df_ews_deviations.to_csv('data_export/'+dir_name+'/ews_std.csv')
 
 
 #--------------------
