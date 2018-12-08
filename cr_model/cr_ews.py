@@ -35,7 +35,7 @@ if not os.path.exists('data_export/'+dir_name):
 
 
 #--------------------------------
-# Adjustable parameters
+# Global parameters
 #–-----------------------------
 
 
