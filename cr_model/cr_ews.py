@@ -39,11 +39,11 @@ if not os.path.exists('data_export/'+dir_name):
 
 
 # Simulation parameters
-dt = 0.02
+dt = 0.01
 t0 = 0
 tmax = 200
 tburn = 100 # burn-in period
-numSims = 2
+numSims = 10
 seed = 0 # random number generation seed
 
 # EWS parameters
@@ -70,8 +70,8 @@ def de_fun_y(x,y,e,a,h,m):
     return e*a*x*y/(1+a*h*x) - m*y
     
 # Model parameters
-sigma_x = 0.04 # noise intensity
-sigma_y = 0.04
+sigma_x = 0.02 # noise intensity
+sigma_y = 0.02
 r = 10
 k = 1.7
 h = 0.06
@@ -151,6 +151,8 @@ for j in range(numSims):
     print('Simulation '+str(j+1)+' complete')
 
 
+
+
 #----------------------
 ## Execute ews_compute for each realisation in x
 #---------------------
@@ -198,20 +200,15 @@ df_ews = pd.concat(appended_ews).set_index('Realisation number',append=True).reo
 df_pspec = pd.concat(appended_pspec).set_index('Realisation number',append=True).reorder_levels([2,0,1])
 
 
-## export the first 5 realisations for plotting
-#df_ews.loc[1:5].to_csv('data_export/'+dir_name+'/ews_singles.csv')
+# Compute ensemble statistics of EWS over all realisations (mean, pm1 s.d.)
+ews_names = ['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC', 
+                      'AIC fold', 'AIC hopf', 'AIC null', 'Coherence factor']
+
+df_ews_means = df_ews[ews_names].mean(level='Time')
+df_ews_deviations = df_ews[ews_names].std(level='Time')
 
 
-# Compute summary statistics of EWS over all realisations (mean, pm1 s.d.)
-df_ews_means = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC', 
-                      'AIC fold', 'AIC hopf']].mean(level='Time')
-df_ews_deviations = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC', 
-                      'AIC fold', 'AIC hopf']].std(level='Time')
 
-
-## Export summary statistics for plotting in MMA
-#df_ews_means.to_csv('data_export/'+dir_name+'/ews_mean.csv')
-#df_ews_deviations.to_csv('data_export/'+dir_name+'/ews_std.csv')
 
 
 #-------------------------
@@ -256,11 +253,26 @@ for ax in axes[::3]:
 for ax in axes:
     ax.set_ylim(top=1.05*max(df_pspec.loc[plot_num]['Empirical']), bottom=0)
 
-# Export figure
+
+
+
+
+#------------------------------------
+## Export data / figures
+#-----------------------------------
+
+# Export power spectrum evolution (grid plot)
 g.savefig('figures/pspec_evol1.png', dpi=200)
 
+## Export the first 5 realisations to see individual behaviour
+# EWS DataFrame (includes trajectories)
+df_ews.loc[:5].to_csv('data_export/'+dir_name+'/ews_singles.csv')
+# Power spectrum DataFrame (only empirical values)
+df_pspec.loc[:5,'Empirical'].dropna().to_csv('data_export/'+dir_name+'/pspecs.csv')
 
-
+# Export ensemble statistics
+df_ews_means.to_csv('data_export/'+dir_name+'/ews_ensemble_mean.csv')
+df_ews_deviations.to_csv('data_export/'+dir_name+'/ews_ensemble_std.csv')
 
 
 
