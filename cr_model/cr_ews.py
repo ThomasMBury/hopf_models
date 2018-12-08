@@ -41,12 +41,13 @@ if not os.path.exists('data_export/'+dir_name):
 # Simulation parameters
 dt = 0.1
 t0 = 0
-tmax = 150
+tmax = 100
 tburn = 100 # burn-in period
 numSims = 5
 seed = 0 # random number generation seed
 
 # EWS parameters
+dt2 = 0.2 # spacing between time-series for EWS computation
 rw = 0.25 # rolling window
 bw = 0.1 # bandwidth
 lags = [1,2,4] # autocorrelation lag times
@@ -152,8 +153,7 @@ print('\nSimulations complete\n')
 #---------------------
 
 # Filter time-series to have time-spacing dt2
-dt2 = 0.5
-df_sims_filt = df_sims_x[np.remainder(df_sims_x.index,dt2) == 0]
+df_sims_filt = df_sims_x.loc[::int(dt2/dt)]
 
 # set up a list to store output dataframes from ews_compute- we will concatenate them at the end
 appended_ews = []
@@ -249,75 +249,8 @@ for ax in axes[::3]:
 #for ax in axes:
 #    ax.set_ylim(top=1.05*max(df_pspec['Empirical']), bottom=0)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Power spectrum and fitting at t = t_pspec
-#
-## Chosen time to visualise power spectrum
-#t_pspec = 140
-#
-## Use pspec_welch to compute power spectrum
-#pspec=pspec_welch(df_ews.loc[plot_num][t_pspec-rw*max(df_sims_filt.index):t_pspec]['Residuals'], dt2, ham_length=ham_length, w_cutoff=1)
-#
-## Execute the function pspec_metrics to compute the AIC weights and fitting parameters
-#spec_ews = pspec_metrics(pspec, ews=['smax', 'cf', 'aic', 'aic_params'])
-## Define the power spectrum models
-#def fit_fold(w,sigma,lam):
-#    return (sigma**2 / (2*np.pi))*(1/(w**2+lam**2))
-#        
-#def fit_hopf(w,sigma,mu,w0):
-#    return (sigma**2/(4*np.pi))*(1/((w+w0)**2+mu**2)+1/((w-w0)**2 +mu**2))
-#        
-#def fit_null(w,sigma):
-#    return sigma**2/(2*np.pi)* w**0
-#
-## Make plot
-#w_vals = np.linspace(-max(pspec.index), max(pspec.index), 100)
-#fig2 = plt.figure(2)
-#pspec.plot(label='Measured')
-#plt.plot(w_vals, fit_fold(w_vals, spec_ews['Params fold']['sigma'], spec_ews['Params fold']['lam']),label='Fold (AIC='+str(round(spec_ews['AIC fold'],2))+')')
-#plt.plot(w_vals, fit_hopf(w_vals, spec_ews['Params hopf']['sigma'], spec_ews['Params hopf']['mu'], spec_ews['Params hopf']['w0']),label='Hopf (AIC='+str(round(spec_ews['AIC hopf'],2))+')')
-#plt.plot(w_vals, fit_null(w_vals, spec_ews['Params null']['sigma']),label='Null (AIC='+str(round(spec_ews['AIC null'],2))+')')
-#plt.ylabel('Power')
-#plt.legend()
-#plt.title('Power spectrum and fits at time t='+str(t_pspec))
-#
-#
-### Plot of power spectrum evolution over time
-#
-## initialise dataframe for power spectra
-#df_pspec = pd.DataFrame([])
-## loop over time
-#for k in np.arange(rw*tbif, tbif, 10):
-#            
-#            # select subset of series contained in window
-#            window_series = df_ews.loc[1]['Residuals'][k-rw*tbif:k]
-#                        
-#            # compute power spectrum of window data using function pspec_welch
-#            pspec = pspec_welch(window_series, dt2, 
-#                                ham_length=ham_length, 
-#                                ham_offset=ham_offset)
-#            # add series to dataframe
-#            df_pspec[str(k)] = pspec
-#            
-## plot evolving power spectrum
-#fig4 = plt.figure(4)            
-#df_pspec.plot()
-#
-## export power spectra data for plotting in MMA
-#df_pspec.to_csv('data_export/'+dir_name+'/pspec.csv')
-
+# Export figure
+g.savefig('figures/pspec_evol1.png', dpi=200)
 
 
 
