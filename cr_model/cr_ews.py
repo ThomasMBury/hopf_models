@@ -70,8 +70,8 @@ def de_fun_y(x,y,e,a,h,m):
     return e*a*x*y/(1+a*h*x) - m*y
     
 # Model parameters
-sigma_x = 0.02 # noise intensity
-sigma_y = 0.02
+sigma_x = 0.04 # noise intensity
+sigma_y = 0.04
 r = 10
 k = 1.7
 h = 0.06
@@ -233,7 +233,9 @@ df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3
 
 
 ## Grid plot for evolution of the power spectrum in time
-g = sns.FacetGrid(df_pspec.loc[plot_num][::2].reset_index(), 
+# time values to display power spectrum
+t_display = df_pspec.index.levels[1][::2].values
+g = sns.FacetGrid(df_pspec.loc[plot_num].loc[t_display].reset_index(), 
                   col='Time',
                   col_wrap=3,
                   sharey=False,
