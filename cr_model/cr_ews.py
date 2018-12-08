@@ -39,22 +39,22 @@ if not os.path.exists('data_export/'+dir_name):
 
 
 # Simulation parameters
-dt = 0.1
+dt = 0.02
 t0 = 0
-tmax = 100
+tmax = 200
 tburn = 100 # burn-in period
-numSims = 5
+numSims = 2
 seed = 0 # random number generation seed
 
 # EWS parameters
-dt2 = 0.2 # spacing between time-series for EWS computation
+dt2 = 0.5 # spacing between time-series for EWS computation
 rw = 0.25 # rolling window
 bw = 0.1 # bandwidth
 lags = [1,2,4] # autocorrelation lag times
-ews = ['var','ac','sd','cv','skew','kurt','smax','aic'] # EWS to compute
+ews = ['var','ac','sd','cv','skew','kurt','smax','aic','cf'] # EWS to compute
 ham_length = 40 # number of data points in Hamming window
 ham_offset = 0.5 # proportion of Hamming window to offset by upon each iteration
-pspec_roll_offset = 20 # offset for rolling window when doing spectrum metrics
+pspec_roll_offset = 10 # offset for rolling window when doing spectrum metrics
 
 
 #----------------------------------
@@ -78,7 +78,7 @@ h = 0.06
 e = 0.5
 m = 5
 al = 25 # control parameter initial value
-ah = 40 # control parameter final value
+ah = 42 # control parameter final value
 abif = 39.23 # bifurcation point (computed in Mathematica)
 x0 = 1 # intial condition (equilibrium value computed in Mathematica)
 y0 = 0.412
@@ -108,6 +108,7 @@ np.random.seed(seed)
 
 
 # loop over simulations
+print('\nBegin simulations \n')
 for j in range(numSims):
     
     
@@ -144,8 +145,10 @@ for j in range(numSims):
     # add Series to DataFrames of realisations
     df_sims_x['Sim '+str(j+1)] = series_x
     df_sims_y['Sim '+str(j+1)] = series_y
+    
+    
 
-print('\nSimulations complete\n')
+    print('Simulation '+str(j+1)+' complete')
 
 
 #----------------------
@@ -160,6 +163,7 @@ appended_ews = []
 appended_pspec = []
 
 # loop through each trajectory as an input to ews_compute
+print('\nBegin EWS computation\n')
 for i in range(numSims):
     ews_dic = ews_compute(df_sims_filt['Sim '+str(i+1)], 
                       roll_window = rw, 
@@ -215,7 +219,7 @@ df_ews_deviations = df_ews[['Variance', 'Lag-1 AC', 'Lag-2 AC', 'Lag-4 AC',
 #-------------------------
 
 # Realisation number to plot
-plot_num = 2
+plot_num = 1
 
 ## Plot of trajectory, smoothing and EWS
 fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
@@ -224,11 +228,12 @@ df_ews.loc[plot_num][['State variable','Smoothing']].plot(ax=axes[0],
 df_ews.loc[plot_num]['Variance'].plot(ax=axes[1],legend=True)
 df_ews.loc[plot_num][['Lag-1 AC','Lag-2 AC','Lag-4 AC']].plot(ax=axes[1], secondary_y=True,legend=True)
 df_ews.loc[plot_num]['Smax'].dropna().plot(ax=axes[2],legend=True)
+df_ews.loc[plot_num]['Coherence factor'].dropna().plot(ax=axes[2], secondary_y=True, legend=True)
 df_ews.loc[plot_num][['AIC fold','AIC hopf','AIC null']].dropna().plot(ax=axes[3],legend=True)
 
 
 ## Grid plot for evolution of the power spectrum in time
-g = sns.FacetGrid(df_pspec.loc[plot_num].reset_index(), 
+g = sns.FacetGrid(df_pspec.loc[plot_num][::2].reset_index(), 
                   col='Time',
                   col_wrap=3,
                   sharey=False,
@@ -245,9 +250,9 @@ axes = g.axes
 # Set y labels
 for ax in axes[::3]:
     ax.set_ylabel('Power')
-## Set y limit as max power over all time
-#for ax in axes:
-#    ax.set_ylim(top=1.05*max(df_pspec['Empirical']), bottom=0)
+# Set y limit as max power over all time
+for ax in axes:
+    ax.set_ylim(top=1.05*max(df_pspec.loc[plot_num]['Empirical']), bottom=0)
 
 # Export figure
 g.savefig('figures/pspec_evol1.png', dpi=200)
