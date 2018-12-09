@@ -44,7 +44,7 @@ t0 = 0
 tmax = 200
 tburn = 100 # burn-in period
 numSims = 5
-seed = 0 # random number generation seed
+seed = 10 # random number generation seed
 
 # EWS parameters
 dt2 = 0.5 # spacing between time-series for EWS computation
@@ -54,7 +54,7 @@ lags = [1,2,4] # autocorrelation lag times
 ews = ['var','ac','sd','cv','skew','kurt','smax','aic','cf'] # EWS to compute
 ham_length = 40 # number of data points in Hamming window
 ham_offset = 0.5 # proportion of Hamming window to offset by upon each iteration
-pspec_roll_offset = 10 # offset for rolling window when doing spectrum metrics
+pspec_roll_offset = 20 # offset for rolling window when doing spectrum metrics
 
 
 #----------------------------------
@@ -263,7 +263,7 @@ def plot_pspec_grid(tVals, plot_num, var):
     return g
 
 #  Choose time values at which to display power spectrum
-t_display = df_pspec.index.levels[2][::2].values
+t_display = df_pspec.index.levels[2][::1].values
 
 plot_pspec_x = plot_pspec_grid(t_display,1,'x')
 plot_pspec_y = plot_pspec_grid(t_display,1,'y')
@@ -275,6 +275,7 @@ plot_pspec_y = plot_pspec_grid(t_display,1,'y')
 
 # Export power spectrum evolution (grid plot)
 plot_pspec_x.savefig('figures/pspec_evol_x.png', dpi=200)
+plot_pspec_y.savefig('figures/pspec_evol_y.png', dpi=200)
 
 ## Export the first 5 realisations to see individual behaviour
 # EWS DataFrame (includes trajectories)
