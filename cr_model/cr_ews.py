@@ -281,7 +281,8 @@ plot_pspec_y.savefig('figures/pspec_evol_y.png', dpi=200)
 # EWS DataFrame (includes trajectories)
 df_ews.loc[:5].to_csv('data_export/'+dir_name+'/ews_singles.csv')
 # Power spectrum DataFrame (only empirical values)
-df_pspec.loc[:5,'Empirical'].dropna().to_csv('data_export/'+dir_name+'/pspecs.csv')
+df_pspec.loc[:5,'Empirical'].dropna().to_csv('data_export/'+dir_name+'/pspecs.csv',
+            header=True)
 
 # Export ensemble statistics
 df_ews_means.to_csv('data_export/'+dir_name+'/ews_ensemble_mean.csv')
