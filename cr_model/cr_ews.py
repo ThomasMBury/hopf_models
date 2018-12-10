@@ -27,7 +27,7 @@ from ews_compute import ews_compute
 #–----------------------
 
 # Name of directory within data_export
-dir_name = 'cr_ews_1'
+dir_name = 'cr_ews_2'
 
 if not os.path.exists('data_export/'+dir_name):
     os.makedirs('data_export/'+dir_name)
@@ -41,10 +41,10 @@ if not os.path.exists('data_export/'+dir_name):
 # Simulation parameters
 dt = 0.01
 t0 = 0
-tmax = 200
+tmax = 180
 tburn = 100 # burn-in period
 numSims = 5
-seed = 10 # random number generation seed
+seed = 4 # random number generation seed
 
 # EWS parameters
 dt2 = 0.5 # spacing between time-series for EWS computation
@@ -251,7 +251,7 @@ def plot_pspec_grid(tVals, plot_num, var):
     g.map(plt.plot, 'Frequency', 'Fit fold', color='b', linestyle='dashed', linewidth=1)
     g.map(plt.plot, 'Frequency', 'Fit hopf', color='r', linestyle='dashed', linewidth=1)
     g.map(plt.plot, 'Frequency', 'Fit null', color='g', linestyle='dashed', linewidth=1)
-    # Axes properties
+    # Axes properties 
     axes = g.axes
     # Set y labels
     for ax in axes[::3]:
@@ -259,7 +259,7 @@ def plot_pspec_grid(tVals, plot_num, var):
         # Set y limit as max power over all time
         for ax in axes:
             ax.set_ylim(top=1.05*max(df_pspec.loc[plot_num,var]['Empirical']), bottom=0)
-       
+#            ax.set_yscale('log')
     return g
 
 #  Choose time values at which to display power spectrum
@@ -269,24 +269,24 @@ plot_pspec_x = plot_pspec_grid(t_display,1,'x')
 plot_pspec_y = plot_pspec_grid(t_display,1,'y')
 
 
-#------------------------------------
-## Export data / figures
-#-----------------------------------
-
-# Export power spectrum evolution (grid plot)
-plot_pspec_x.savefig('figures/pspec_evol_x.png', dpi=200)
-plot_pspec_y.savefig('figures/pspec_evol_y.png', dpi=200)
-
-## Export the first 5 realisations to see individual behaviour
-# EWS DataFrame (includes trajectories)
-df_ews.loc[:5].to_csv('data_export/'+dir_name+'/ews_singles.csv')
-# Power spectrum DataFrame (only empirical values)
-df_pspec.loc[:5,'Empirical'].dropna().to_csv('data_export/'+dir_name+'/pspecs.csv',
-            header=True)
-
-# Export ensemble statistics
-df_ews_means.to_csv('data_export/'+dir_name+'/ews_ensemble_mean.csv')
-df_ews_deviations.to_csv('data_export/'+dir_name+'/ews_ensemble_std.csv')
+##------------------------------------
+### Export data / figures
+##-----------------------------------
+#
+## Export power spectrum evolution (grid plot)
+#plot_pspec_x.savefig('figures/pspec_evol_x.png', dpi=200)
+#plot_pspec_y.savefig('figures/pspec_evol_y.png', dpi=200)
+#
+### Export the first 5 realisations to see individual behaviour
+## EWS DataFrame (includes trajectories)
+#df_ews.loc[:5].to_csv('data_export/'+dir_name+'/ews_singles.csv')
+## Power spectrum DataFrame (only empirical values)
+#df_pspec.loc[:5,'Empirical'].dropna().to_csv('data_export/'+dir_name+'/pspecs.csv',
+#            header=True)
+#
+## Export ensemble statistics
+#df_ews_means.to_csv('data_export/'+dir_name+'/ews_ensemble_mean.csv')
+#df_ews_deviations.to_csv('data_export/'+dir_name+'/ews_ensemble_std.csv')
 
 
 
