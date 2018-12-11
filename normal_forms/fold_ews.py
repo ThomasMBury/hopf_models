@@ -208,7 +208,7 @@ df_pspec = pd.concat(appended_pspec).reset_index().set_index(['Realisation numbe
 #-------------------------
 
 # Realisation number to plot
-plot_num = 3
+plot_num = 1
 var = 'y'
 ## Plot of trajectory, smoothing and EWS of var (x or y)
 fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
@@ -250,8 +250,8 @@ def plot_pspec_grid(tVals, plot_num, var):
 #  Choose time values at which to display power spectrum
 t_display = df_pspec.index.levels[2][::1].values
 
-plot_pspec_x = plot_pspec_grid(t_display, plot_num, 'x')
-plot_pspec_y = plot_pspec_grid(t_display, plot_num, 'y')
+plot_pspec_x = plot_pspec_grid(t_display,1,'x')
+plot_pspec_y = plot_pspec_grid(t_display,1,'y')
 
 
 #------------------------------------
