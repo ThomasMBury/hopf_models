@@ -27,7 +27,7 @@ from ews_compute import ews_compute
 #–----------------------
 
 # Name of directory within data_export
-dir_name = 'hopf_ews_1'
+dir_name = 'fold_ews_1'
 
 if not os.path.exists('data_export/'+dir_name):
     os.makedirs('data_export/'+dir_name)
@@ -41,7 +41,7 @@ if not os.path.exists('data_export/'+dir_name):
 # Simulation parameters
 dt = 0.01
 t0 = 0
-tmax = 400
+tmax = 1000
 tburn = 100 # burn-in period
 numSims = 5
 seed = 10 # random number generation seed
@@ -61,30 +61,18 @@ pspec_roll_offset = 20 # offset for rolling window when doing spectrum metrics
 # Simulate many (transient) realisations
 #----------------------------------
 
-# Model
-
-def de_fun_x(x,y,u,w):
-    return u*x-w*y-x*(x**2+y**2)
-
-def de_fun_y(x,y,u,w):
-    return w*x+u*y-y*(x**2+y**2)
+# Model (bound system by using a piecewise definition)
+def de_fun(x,u):
+    output = -u - x**2 if x > -1.5 else 0
+    return output
     
 # Model parameters
-sigma_x = 0.05 # noise intensity
-sigma_y = 0.05
-w = 2 # intrinsic frequency at Hopf bifurcation
+sigma = 0.05 # noise intensity
 bl = -1 # control parameter initial value
 bh = 0.2 # control parameter final value
 bcrit = 0 # bifurcation point (computed in Mathematica)
-x0 = 0 # intial condition (equilibrium value)
-y0 = 0
+x0 = np.sqrt(-bl) # intial condition (equilibrium value)
 
-
-
-
-# initialise DataFrame for each variable to store all realisations
-df_sims_x = pd.DataFrame([])
-df_sims_y = pd.DataFrame([])
 
 # Initialise arrays to store single time-series data
 t = np.arange(t0,tmax,dt)
@@ -96,8 +84,8 @@ b = pd.Series(np.linspace(bl,bh,len(t)),index=t)
 # Time at which bifurcation occurs
 tbif = b[b > bcrit].index[1]
 
-## Implement Euler Maryuyama for stocahstic simulation
 
+## Implement Euler Maryuyama for stocahstic simulation
 
 # Set seed
 np.random.seed(seed)
@@ -111,31 +99,24 @@ for j in range(numSims):
     
     
     # Create brownian increments (s.d. sqrt(dt))
-    dW_x_burn = np.random.normal(loc=0, scale=sigma_x*np.sqrt(dt), size = int(tburn/dt))
-    dW_x = np.random.normal(loc=0, scale=sigma_x*np.sqrt(dt), size = len(t))
-    
-    dW_y_burn = np.random.normal(loc=0, scale=sigma_y*np.sqrt(dt), size = int(tburn/dt))
-    dW_y = np.random.normal(loc=0, scale=sigma_y*np.sqrt(dt), size = len(t))
-    
+    dW_x_burn = np.random.normal(loc=0, scale=sigma*np.sqrt(dt), size = int(tburn/dt))
+    dW_x = np.random.normal(loc=0, scale=sigma*np.sqrt(dt), size = len(t))
+        
     # Run burn-in period on x0
     for i in range(int(tburn/dt)):
-        x0 = x0 + de_fun_x(x0,y0,bl,w)*dt + dW_x_burn[i]
-        y0 = y0 + de_fun_y(x0,y0,bl,w)*dt + dW_y_burn[i]
+        x0 = x0 + de_fun(x0,bl)*dt + dW_x_burn[i]
         
     # Initial condition post burn-in period
     x[0]=x0
-    y[0]=y0
     
     # Run simulation
     for i in range(len(t)-1):
-        x[i+1] = x[i] + de_fun_x(x[i],y[i],b.iloc[i],w)*dt + dW_x[i]
-        y[i+1] = y[i] + de_fun_y(x[i],y[i],b.iloc[i],w)*dt + dW_y[i]
+        x[i+1] = x[i] + de_fun(x[i],b.iloc[i])*dt + dW_x[i]
             
     # Store series data in a temporary DataFrame
     data = {'Realisation number': (j+1)*np.ones(len(t)),
                 'Time': t,
-                'x': x,
-                'y': y}
+                'x': x}
     df_temp = pd.DataFrame(data)
     # Append to list
     list_traj_append.append(df_temp)
@@ -162,7 +143,7 @@ appended_pspec = []
 print('\nBegin EWS computation\n')
 for i in range(numSims):
     # loop through variable
-    for var in ['x','y']:
+    for var in ['x']:
         
         ews_dic = ews_compute(df_traj_filt.loc[i+1][var], 
                           roll_window = rw, 
@@ -209,7 +190,7 @@ df_pspec = pd.concat(appended_pspec).reset_index().set_index(['Realisation numbe
 
 # Realisation number to plot
 plot_num = 1
-var = 'y'
+var = 'x'
 ## Plot of trajectory, smoothing and EWS of var (x or y)
 fig1, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(6,6))
 df_ews.loc[plot_num,var][['State variable','Smoothing']].plot(ax=axes[0],
@@ -251,7 +232,6 @@ def plot_pspec_grid(tVals, plot_num, var):
 t_display = df_pspec.index.levels[2][::1].values
 
 plot_pspec_x = plot_pspec_grid(t_display,1,'x')
-plot_pspec_y = plot_pspec_grid(t_display,1,'y')
 
 
 #------------------------------------

@@ -81,11 +81,6 @@ y0 = 0
 
 
 
-
-# initialise DataFrame for each variable to store all realisations
-df_sims_x = pd.DataFrame([])
-df_sims_y = pd.DataFrame([])
-
 # Initialise arrays to store single time-series data
 t = np.arange(t0,tmax,dt)
 x = np.zeros(len(t))
